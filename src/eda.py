@@ -10,3 +10,5 @@ def load_datasets():
     return benin_df, sierra_df, togo_df
 
 
+def summary_statistics(df):
+    return df.describe()
