@@ -28,8 +28,8 @@ def check_data_quality(df):
     quality_report = {}
 
     # 1. Check for missing values
-    missing_values = df['Bp'].isnull().all()
-    quality_report['missing_values'] = missing_values[False]
+    missing_values = df.isnull().sum()
+    quality_report['missing_values'] = missing_values[missing_values > 0]
 
     # 2. Check for negative values in GHI, DNI, DHI (if they should always be positive)
     invalid_values = {}
@@ -61,3 +61,10 @@ def check_data_quality(df):
     quality_report['summary'] = total_issues
 
     return quality_report
+
+
+def plot_time_series(df, time_col, value_cols, title="Time Series Analysis"):
+    df[time_col] = pd.to_datetime(df[time_col])
+    df.set_index(time_col)[value_cols].plot(figsize=(10, 6))
+    plt.title(title)
+    plt.show()
