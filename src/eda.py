@@ -293,3 +293,52 @@ def z_score_analysis(df, columns, threshold=3):
                 outliers[col] = flagged
 
     return outliers
+
+
+# Bubble chart
+import matplotlib.pyplot as plt
+import os
+
+def create_bubble_chart(df, x_col, y_col, bubble_size_col, color_col=None, title=None, xlabel=None, ylabel=None, save_dir=None, save_filename=None):
+
+    # Check if columns exist
+    for col in [x_col, y_col, bubble_size_col, color_col]:
+        if col and col not in df.columns:
+            raise ValueError(f"Column '{col}' not found in DataFrame.")
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+
+    # Scatter plot with bubble sizes and optional color mapping
+    scatter = plt.scatter(
+        df[x_col], df[y_col],
+        s=df[bubble_size_col],  # Bubble size
+        c=df[color_col] if color_col else 'blue',  # Color based on column or fixed
+        alpha=0.6, edgecolors='w', linewidth=0.5
+    )
+
+    # Add color bar if color_col is provided
+    if color_col:
+        cbar = plt.colorbar(scatter)
+        cbar.set_label(color_col)
+
+    # Chart aesthetics
+    plt.title(title or f"{y_col} vs {x_col} (Bubble Size: {bubble_size_col})")
+    plt.xlabel(xlabel or x_col)
+    plt.ylabel(ylabel or y_col)
+    plt.grid(True)
+    plt.tight_layout()
+
+    # Save the plot if save_dir is specified
+    if save_dir:
+        # Create the directory if it does not exist
+        os.makedirs(save_dir, exist_ok=True)
+        # Default filename if not provided
+        save_filename = save_filename or "bubble_chart.png"
+        save_path = os.path.join(save_dir, save_filename)
+        plt.savefig(save_path, dpi=300)
+        print(f"Plot saved to: {save_path}")
+
+    # Show plot
+    plt.show()
+
