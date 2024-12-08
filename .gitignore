@@ -3,3 +3,13 @@ __pycache__/
 *.pyc
 *.pyo
 .ipynb_checkpoints/
+
+# Ignore Jupyter Notebook checkpoints, i.e., automatically generated
+notebooks/.ipynb_checkpoints/
+
+# Ignore all plot-related directories in the notebooks folder I created to store diagrams and charts
+notebooks/plots/
+notebooks/plots_histograms/
+notebooks/plots_temprature_analysis/
+notebooks/plots_visualize correlations/
+notebooks/plots_wind analysis/
