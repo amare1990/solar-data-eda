@@ -186,3 +186,90 @@ def wind_analysis(df, output_dir=None):
         plt.savefig(f"{output_dir}/wind_speed_variability.png", bbox_inches='tight')
     else:
         plt.show()
+
+
+# Effect of humudity over Temprature and solar radiation
+def temperature_analysis(df, output_dir=None):
+
+    # Check if required columns exist
+    required_columns = {'RH', 'TModA', 'TModB', 'GHI', 'DNI', 'DHI'}
+    if not required_columns.issubset(df.columns):
+        raise ValueError(f"Dataset must contain the following columns: {required_columns}")
+
+    # Drop rows with missing values in relevant columns
+    filtered_df = df[list(required_columns)].dropna()
+
+    # 1. Scatter plot: RH vs Temperature (TModA)
+    plt.figure(figsize=(8, 5))
+    sns.scatterplot(x=filtered_df['RH'], y=filtered_df['TModA'], alpha=0.7)
+    plt.title("Relative Humidity vs Temperature (TModA)")
+    plt.xlabel("Relative Humidity (%)")
+    plt.ylabel("Temperature (°C)")
+    plt.grid(True)
+
+    # Save or display the plot
+    if output_dir:
+        plt.savefig(f"{output_dir}/rh_vs_temperature_modA.png", bbox_inches='tight')
+    else:
+        plt.show()
+
+    # 2. Scatter plot: RH vs Solar Radiation (GHI)
+    plt.figure(figsize=(8, 5))
+    sns.scatterplot(x=filtered_df['RH'], y=filtered_df['GHI'], alpha=0.7, color='orange')
+    plt.title("Relative Humidity vs Solar Radiation (GHI)")
+    plt.xlabel("Relative Humidity (%)")
+    plt.ylabel("Global Horizontal Irradiance (W/m²)")
+    plt.grid(True)
+
+    # Save or display the plot
+    if output_dir:
+        plt.savefig(f"{output_dir}/rh_vs_solar_radiation_ghi.png", bbox_inches='tight')
+    else:
+        plt.show()
+
+    # 3. Correlation Matrix
+    correlation_matrix = filtered_df.corr()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(
+        correlation_matrix,
+        annot=True,
+        fmt=".2f",
+        cmap="coolwarm",
+        cbar=True
+    )
+    plt.title("Correlation Matrix: Temperature, RH, and Solar Radiation")
+
+    # Save or display the heatmap
+    if output_dir:
+        plt.savefig(f"{output_dir}/correlation_matrix.png", bbox_inches='tight')
+    else:
+        plt.show()
+
+
+# Create Histograms
+
+def create_histograms(df, columns, output_dir=None):
+
+    # Filter only the columns that exist in the DataFrame
+    available_columns = [col for col in columns if col in df.columns]
+    if not available_columns:
+        raise ValueError("None of the specified columns are available in the dataset.")
+
+    # Drop missing values to avoid skewed distributions
+    filtered_df = df[available_columns].dropna()
+
+    # Create histograms
+    for col in available_columns:
+        plt.figure(figsize=(8, 5))
+        sns.histplot(filtered_df[col], kde=True, bins=30, color='blue', alpha=0.7)
+        plt.title(f"Histogram of {col}")
+        plt.xlabel(col)
+        plt.ylabel("Frequency")
+        plt.grid(True)
+
+        # Save or display the plot
+        if output_dir:
+            plt.savefig(f"{output_dir}/histogram_{col}.png", bbox_inches='tight')
+        else:
+            plt.show()
+
