@@ -13,37 +13,26 @@ def load_datasets():
 def summary_statistics(df):
     return df.describe()
 
+# Check data quality
 def check_data_quality(df):
-    """
-    Perform data quality checks on the dataset.
-    Includes checks for missing values, outliers, and incorrect entries.
-
-    Args:
-    df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-    dict: A dictionary containing results of the data quality checks.
-    """
     # Initialize the result dictionary
     quality_report = {}
 
-    # 1. Check for missing values
-    # missing_values = df.isnull().sum()
-    missing_values = df.drop(columns=['Comments'], errors='ignore').isnull().sum()
+    # 1. Check for missing values, excluding the Comments column
+    if 'Comments' in df.columns:
+        missing_values = df.drop(columns=['Comments']).isnull().sum()
+    else:
+        missing_values = df.isnull().sum()
     quality_report['missing_values'] = missing_values[missing_values > 0]
 
-
-
-    # 2. Check for negative values in GHI, DNI, DHI (if they should always be positive)
+    # 2. Check for negative values in GHI, DNI, DHI
     invalid_values = {}
     for col in ['GHI', 'DNI', 'DHI']:
         if col in df.columns:
-
             invalid_values[col] = df[df[col] < 0][col].count()
     quality_report['negative_values'] = invalid_values
 
-    # 3. Check for outliers in sensor readings (ModA, ModB) and wind data (WS, WSgust)
-    # Using the IQR (Interquartile Range) method for outlier detection
+    # 3. Check for outliers in sensor readings (ModA, ModB) and wind data (WS, WSgust) using IQR
     outliers = {}
     for col in ['ModA', 'ModB', 'WS', 'WSgust']:
         if col in df.columns:
@@ -52,18 +41,19 @@ def check_data_quality(df):
             IQR = Q3 - Q1
             lower_bound = Q1 - 1.5 * IQR
             upper_bound = Q3 + 1.5 * IQR
-            outliers[col] = df[(df[col] < lower_bound) | (df[col] > upper_bound)][col].count()
+            outliers[col] = df[(df[col] < lower_bound) | (df[col] > upper_bound)].shape[0]
     quality_report['outliers'] = outliers
 
-    # 4. Add a summary of total issues detected
+    # 4. Summary of total issues detected
     total_issues = {
-        'total_missing': sum(quality_report['missing_values']),
+        'total_missing': quality_report['missing_values'].sum(),
         'total_negative': sum(quality_report['negative_values'].values()),
         'total_outliers': sum(quality_report['outliers'].values())
     }
     quality_report['summary'] = total_issues
 
     return quality_report
+
 
 
 def plot_time_series(df, time_col, value_cols, title="Time Series Analysis"):
@@ -296,7 +286,6 @@ def z_score_analysis(df, columns, threshold=3):
 
 
 # Bubble chart
-import matplotlib.pyplot as plt
 import os
 
 def create_bubble_chart(df, x_col, y_col, bubble_size_col, color_col=None, title=None, xlabel=None, ylabel=None, save_dir=None, save_filename=None):
@@ -341,4 +330,29 @@ def create_bubble_chart(df, x_col, y_col, bubble_size_col, color_col=None, title
 
     # Show plot
     plt.show()
+
+
+
+# Clean data
+from scipy.stats import zscore
+
+def clean_data(df):
+    # Step 1: Remove Comments column if it exists
+    if 'Comments' in df.columns:
+        df_cleaned = df.drop(columns=['Comments'])
+    else:
+        df_cleaned = df.copy()
+
+    # Step 2: Remove rows with negative values in DHI, DNI, GHI
+    for col in ['DHI', 'DNI', 'GHI']:
+        if col in df_cleaned.columns:
+            df_cleaned = df_cleaned[df_cleaned[col] >= 0]
+
+    # Step 3: Remove outliers using Z-scores
+    zscore_columns = ['ModA', 'ModB', 'WS', 'WSgust']
+    for col in zscore_columns:
+        if col in df_cleaned.columns:
+            df_cleaned = df_cleaned[(zscore(df_cleaned[col]) < 3).fillna(True)]
+
+    return df_cleaned
 
