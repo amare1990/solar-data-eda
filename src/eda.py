@@ -28,8 +28,11 @@ def check_data_quality(df):
     quality_report = {}
 
     # 1. Check for missing values
-    missing_values = df.isnull().sum()
+    # missing_values = df.isnull().sum()
+    missing_values = df.drop(columns=['Comments'], errors='ignore').isnull().sum()
     quality_report['missing_values'] = missing_values[missing_values > 0]
+
+
 
     # 2. Check for negative values in GHI, DNI, DHI (if they should always be positive)
     invalid_values = {}
