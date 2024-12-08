@@ -273,3 +273,23 @@ def create_histograms(df, columns, output_dir=None):
         else:
             plt.show()
 
+
+# detecting outliers
+def z_score_analysis(df, columns, threshold=3):
+
+    outliers = {}
+
+    for col in columns:
+        if col in df.columns:
+            # Calculate Z-scores
+            mean = df[col].mean()
+            std = df[col].std()
+            z_scores = (df[col] - mean) / std
+
+            # Flag rows where the absolute Z-score exceeds the threshold
+            flagged = df[np.abs(z_scores) > threshold]
+
+            if not flagged.empty:
+                outliers[col] = flagged
+
+    return outliers
