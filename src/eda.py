@@ -106,3 +106,83 @@ def evaluate_cleaning_impact(df, sensor_columns=['ModA', 'ModB'], cleaning_colum
     plt.show()
 
     return summary_statistics
+
+
+def visualize_correlations(df, output_dir=None):
+
+    variables = ['GHI', 'DNI', 'DHI', 'TModA', 'TModB', 'WS', 'WSgust', 'WD']
+    selected_data = df[variables].dropna()
+
+    # 1. Correlation Matrix
+    corr_matrix = selected_data.corr()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
+    plt.title("Correlation Matrix")
+
+    if output_dir:
+        plt.savefig(f"{output_dir}/correlation_matrix.png")
+    else:
+        plt.show()
+
+    # 2. Pair Plot for Solar Radiation and Temperature
+    sns.pairplot(selected_data[['GHI', 'DNI', 'DHI', 'TModA', 'TModB']])
+    plt.suptitle("Pair Plot: Solar Radiation and Temperature", y=1.02)
+
+    if output_dir:
+        plt.savefig(f"{output_dir}/pair_plot_solar_temp.png")
+    else:
+        plt.show()
+
+    sns.pairplot(selected_data[['GHI', 'DNI', 'DHI', 'WS', 'WSgust', 'WD']], kind='scatter')
+    plt.suptitle("Scatter Matrix: Wind Conditions and Solar Irradiance", y=1.02)
+
+    if output_dir:
+        plt.savefig(f"{output_dir}/scatter_matrix_wind_solar.png")
+    else:
+        plt.show()
+
+    return corr_matrix
+
+# Wind Analysis
+from windrose import WindroseAxes
+
+def wind_analysis(df, output_dir=None):
+
+    # Check if required columns exist
+    if not {'WS', 'WD'}.issubset(df.columns):
+        raise ValueError("Dataset must contain 'WS' (Wind Speed) and 'WD' (Wind Direction) columns.")
+
+    # Drop rows with missing values in wind columns
+    wind_data = df[['WS', 'WD']].dropna()
+
+    # Create a wind rose plot
+    plt.figure(figsize=(8, 8))
+    ax = WindroseAxes.from_ax()
+    ax.bar(
+        wind_data['WD'],
+        wind_data['WS'],
+        normed=True,  # Normalize the frequency
+        opening=0.8,
+        edgecolor='white'
+    )
+    ax.set_legend(title="Wind Speed (m/s)", loc="lower right", bbox_to_anchor=(1.2, 0.1))
+    plt.title("Wind Rose: Distribution of Wind Speed and Direction")
+
+    # Save or display the plot
+    if output_dir:
+        plt.savefig(f"{output_dir}/wind_rose.png", bbox_inches='tight')
+    else:
+        plt.show()
+
+    # Variability analysis: Boxplot for wind speed
+    plt.figure(figsize=(8, 5))
+    wind_data['WS'].plot.box()
+    plt.title("Wind Speed Variability")
+    plt.ylabel("Wind Speed (m/s)")
+    plt.grid(True)
+
+    # Save or display the boxplot
+    if output_dir:
+        plt.savefig(f"{output_dir}/wind_speed_variability.png", bbox_inches='tight')
+    else:
+        plt.show()
