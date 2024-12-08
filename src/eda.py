@@ -71,3 +71,38 @@ def plot_time_series(df, time_col, value_cols, title="Time Series Analysis"):
     df.set_index(time_col)[value_cols].plot(figsize=(10, 6))
     plt.title(title)
     plt.show()
+
+
+def evaluate_cleaning_impact(df, sensor_columns=['ModA', 'ModB'], cleaning_column='Cleaning', time_column='Timestamp'):
+
+    if not all(col in df.columns for col in sensor_columns + [cleaning_column, time_column]):
+        raise ValueError("Required columns are missing in the DataFrame.")
+
+    # Separate data into cleaned and uncleaned subsets
+    uncleaned_data = df[df[cleaning_column] == 0]
+    cleaned_data = df[df[cleaning_column] == 1]
+
+    # Compute summary statistics
+    summary_statistics = {
+        'uncleaned': uncleaned_data[sensor_columns].describe(),
+        'cleaned': cleaned_data[sensor_columns].describe()
+    }
+
+    # Plot sensor readings over time, grouped by cleaning status
+    plt.figure(figsize=(14, 8))
+    for sensor in sensor_columns:
+        plt.plot(df[time_column], df[sensor], label=f'{sensor} (Original)', alpha=0.5)
+        plt.scatter(
+            cleaned_data[time_column], cleaned_data[sensor],
+            label=f'{sensor} (Cleaned)', color='red', s=10
+        )
+
+    plt.title('Impact of Cleaning on Sensor Readings Over Time')
+    plt.xlabel('Time')
+    plt.ylabel('Sensor Reading')
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
+
+    return summary_statistics
