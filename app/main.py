@@ -55,6 +55,16 @@ def plot_wind_rose(df, speed_col, direction_col):
     ax.set_legend()
     return fig
 
+# Histograms
+def plot_histogram(df, column, bins=30, title="Histogram"):
+    fig, ax = plt.subplots(figsize=(8, 6))
+    df[column].dropna().hist(bins=bins, ax=ax, color="skyblue", edgecolor="black")
+    ax.set_title(title)
+    ax.set_xlabel(column)
+    ax.set_ylabel("Frequency")
+    return fig
+
+
 st.markdown('<div class="title">Solar Energy Statistical and Exploratory Data Analysis Dashboard</div', unsafe_allow_html=True)
 st.write('Welcome to the MoonLight Energy Solutions dashboard')
 st.write("Explore solar energy data insights for Benin, Togo, and Sierra Leone datasets.")
@@ -142,6 +152,21 @@ if uploaded_dataset:
         if 'WD' not in df.columns:
             missing.append("Wind Direction (WD)")
         st.warning(f"{', '.join(missing)} not found in the dataset.")
+
+
+  # Checkbox for histograms
+  if st.sidebar.checkbox("Histograms"):
+      st.write("## Histograms")
+      histogram_columns = [col for col in ['GHI', 'DNI', 'DHI', 'WS', 'TModA', 'TModB'] if col in df.columns]
+
+      if histogram_columns:
+         st.write("### Frequency Distribution of Variables")
+         for col in histogram_columns:
+             st.write(f"#### {col}")
+             fig = plot_histogram(df, col, bins=30, title=f"Histogram of {col}")
+             st.pyplot(fig)
+      else:
+          st.warning("No relevant variables found in the dataset for histogram plotting.")
 
 
 else:
