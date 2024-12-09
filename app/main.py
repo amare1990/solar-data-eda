@@ -24,16 +24,6 @@ font-size: 27px;
 """, unsafe_allow_html=True
 )
 
-# Helper function: Plot correlation heatmap
-
-def display_summary_statistics(df):
-    """
-    Display summary statistics for the dataset.
-
-    Args:
-    Data frame of the dataset.
-    """
-
 # Define the time-series plotting function
 def plot_time_series(df, time_col, value_cols, title="Time Series Analysis"):
     df[time_col] = pd.to_datetime(df[time_col])
