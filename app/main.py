@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from windrose import WindroseAxes
 import numpy as np
 from scipy import stats
+import plotly.express as px
 
 # Streamlit CSS styling
 st.markdown(
@@ -64,6 +65,24 @@ def plot_histogram(df, column, bins=30, title="Histogram"):
     ax.set_xlabel(column)
     ax.set_ylabel("Frequency")
     return fig
+
+
+# Bubble chart
+def plot_bubble_chart(df, x_col, y_col, size_col, color_col=None, title="Bubble Chart"):
+    fig = px.scatter(
+        df,
+        x=x_col,
+        y=y_col,
+        size=size_col,
+        color=color_col,
+        hover_name=df.index,
+        title=title,
+        labels={x_col: x_col, y_col: y_col, size_col: size_col, color_col: color_col},
+        template="plotly_white"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
 
 # Data Quality Check
 def check_data_quality(df):
@@ -247,6 +266,27 @@ if uploaded_dataset:
       with col2:
           st.write("#### Cleaned Dataset")
           st.dataframe(cleaned_df)
+
+  # Bubble chart
+  st.title("Bubble Chart Analysis Dashboard")
+  # Checkbox for Bubble Chart
+  if st.sidebar.checkbox("Explore Relationships with Bubble Charts"):
+     st.write("## Bubble Chart Analysis")
+
+     # Dropdowns to select columns for the chart
+     x_col = st.selectbox("Select X-axis Variable", options=df.columns)
+     y_col = st.selectbox("Select Y-axis Variable", options=df.columns)
+     size_col = st.selectbox("Select Bubble Size Variable", options=df.columns)
+     color_col = st.selectbox("Select Bubble Color Variable (Optional)", options=[None] + list(df.columns), index=0)
+
+     # Ensure the selected columns are numeric
+     numeric_columns = df.select_dtypes(include=['number']).columns
+     if x_col in numeric_columns and y_col in numeric_columns and size_col in numeric_columns:
+        # Plot the bubble chart
+        plot_bubble_chart(df, x_col, y_col, size_col, color_col, title="Bubble Chart: Explore Relationships")
+     else:
+        st.warning("Please select numeric columns for the X-axis, Y-axis, and bubble size.")
+
 
 
 else:
