@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from windrose import WindroseAxes
 import numpy as np
 
 # Streamlit CSS styling
@@ -41,10 +42,18 @@ def plot_correlation(df, columns, title):
   ax.set_title(title)
   return fig
 
-def plot_scatter_matrix(df, columns):
+def plot_scatter_matrix(df, columns, title):
   fig, ax = plt.subplots(figsize=(12, 10))
   sns.pairplot(df[columns])
   st.pyplot(fig)
+  ax.set_title(title)
+
+def plot_wind_rose(df, speed_col, direction_col):
+    fig = plt.figure(figsize=(8, 8))
+    ax = WindroseAxes.from_ax(fig=fig)
+    ax.bar(df[direction_col], df[speed_col], normed=True, opening=0.8, edgecolor="white")
+    ax.set_legend()
+    return fig
 
 st.markdown('<div class="title">Solar Energy Statistical and Exploratory Data Analysis Dashboard</div', unsafe_allow_html=True)
 st.write('Welcome to the MoonLight Energy Solutions dashboard')
@@ -90,8 +99,6 @@ if uploaded_dataset:
     else:
         st.warning("Please select both a time column and at least one value column.")
 
-  st.sidebar.header("Features for Analysis")
-
   # Checkbox for temperature analysis
   if st.sidebar.checkbox("Temperature Analysis"):
     st.write("## Temperature Analysis")
@@ -114,6 +121,26 @@ if uploaded_dataset:
            missing.append("Solar radiation (GHI, DNI, DHI)")
         if not rh_column:
             missing.append("Relative Humidity (RH)")
+        st.warning(f"{', '.join(missing)} not found in the dataset.")
+
+  # Checkbox for wind analysis
+  if st.sidebar.checkbox("Wind Analysis"):
+    st.write("## Wind Analysis")
+
+    wind_columns = [col for col in ['WS', 'WSgust', 'WD'] if col in df.columns]
+    if 'WS' in df.columns and 'WD' in df.columns:
+        st.write("### Distribution of Wind Speed and Direction")
+        fig = plot_wind_rose(df, speed_col='WS', direction_col='WD')
+        st.pyplot(fig)
+        st.write("""
+        - The wind rose visualizes how often the wind comes from various directions and the distribution of wind speeds.
+        """)
+    else:
+        missing = []
+        if 'WS' not in df.columns:
+            missing.append("Wind Speed (WS)")
+        if 'WD' not in df.columns:
+            missing.append("Wind Direction (WD)")
         st.warning(f"{', '.join(missing)} not found in the dataset.")
 
 
