@@ -23,6 +23,17 @@ font-size: 27px;
 
 # Helper function: Plot correlation heatmap
 
+# Define the time-series plotting function
+def plot_time_series(df, time_col, value_cols, title="Time Series Analysis"):
+    df[time_col] = pd.to_datetime(df[time_col])
+    fig, ax = plt.subplots(figsize=(10, 6))
+    df.set_index(time_col)[value_cols].plot(ax=ax)
+    ax.set_title(title)
+    ax.set_xlabel("Timestamp")
+    ax.set_ylabel("Values")
+    plt.legend(loc="best")
+    return fig
+
 def plot_correlation(df, columns, title):
   corr = df[columns].corr()
   fig, ax = plt.subplots(figsize=(8, 6))
@@ -65,6 +76,20 @@ if uploaded_dataset:
        st.pyplot(fig)
     else:
        st.warning("Select at least two columns for correlation analysis.")
+
+  # Time-series analysis
+  if st.sidebar.checkbox("Perform Time-Series Analysis"):
+    time_col = st.selectbox("Select the Time Column", df.columns)
+    value_cols = st.multiselect("Select Value Columns (GHI, DNI, DHI, Tamb) for Analysis", df.columns)
+
+    if time_col and value_cols:
+        st.write("### Time-Series Plot")
+
+        fig = plot_time_series(df, time_col, value_cols)
+        st.pyplot(fig)
+    else:
+        st.warning("Please select both a time column and at least one value column.")
+
 
 else:
    st.warning("Please upload a dataset to begin.")
