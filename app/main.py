@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from windrose import WindroseAxes
 import numpy as np
+from scipy import stats
 
 # Streamlit CSS styling
 st.markdown(
@@ -63,6 +64,60 @@ def plot_histogram(df, column, bins=30, title="Histogram"):
     ax.set_xlabel(column)
     ax.set_ylabel("Frequency")
     return fig
+
+# Data Quality Check
+def check_data_quality(df):
+    quality_report = {}
+
+    # Check for missing values
+    missing_values = df.isnull().sum()
+    quality_report['missing_values'] = missing_values[missing_values > 0]
+
+    # Check for negative values in GHI, DNI, DHI
+    invalid_values = {}
+    for col in ['DHI', 'DNI', 'GHI']:
+        if col in df.columns:
+            invalid_values[col] = df[df[col] < 0][col].count()
+    quality_report['negative_values'] = invalid_values
+
+    # Check for outliers in sensor readings and wind speed data using Z-score
+    outlier_report = {}
+    outlier_columns = ['ModA', 'ModB', 'WS', 'WSgust']
+    for col in outlier_columns:
+        if col in df.columns:
+            z_scores = np.abs(stats.zscore(df[col].dropna()))
+            outlier_report[col] = (z_scores > 3).sum()
+    quality_report['outliers'] = outlier_report
+
+    return quality_report
+
+# Clean Data
+def clean_data(df):
+
+    # Step 1: Remove Comments column if it exists
+    if 'Comments' in df.columns:
+        df_cleaned = df.drop(columns=['Comments'])
+    else:
+        df_cleaned = df.copy()
+
+    # Step 2: Remove rows with negative values in GHI, DNI, DHI
+    for col in ['DHI', 'DNI', 'GHI']:
+        if col in df_cleaned.columns:
+            df_cleaned = df_cleaned[df_cleaned[col] >= 0]
+
+    # Step 3: Remove outliers using Z-scores
+    outlier_columns = ['ModA', 'ModB', 'WS', 'WSgust']
+    for col in outlier_columns:
+        if col in df_cleaned.columns:
+            z_scores = np.abs(stats.zscore(df_cleaned[col].dropna()))
+            df_cleaned = df_cleaned[(z_scores < 3).fillna(True)]
+
+    # Step 4: Handle missing values by dropping rows with NaNs in critical columns
+    critical_columns = ['DHI', 'DNI', 'GHI', 'ModA', 'ModB', 'WS', 'WSgust']
+    df_cleaned = df_cleaned.dropna(subset=critical_columns)
+
+    return df_cleaned
+
 
 
 st.markdown('<div class="title">Solar Energy Statistical and Exploratory Data Analysis Dashboard</div', unsafe_allow_html=True)
@@ -167,6 +222,31 @@ if uploaded_dataset:
              st.pyplot(fig)
       else:
           st.warning("No relevant variables found in the dataset for histogram plotting.")
+
+  # Perform data qualit checking
+  if st.sidebar.checkbox("Perform Data Quality Check"):
+        st.write("## Data Quality Report")
+        quality_report = check_data_quality(df)
+        st.json(quality_report)
+
+  # Checkbox for Data Cleaning
+  if st.sidebar.checkbox("Perform Data Cleaning"):
+      st.write("## Data Cleaning")
+      cleaned_df = clean_data(df)
+
+      # Display Cleaned Data
+      st.write("### Cleaned Dataset")
+      st.dataframe(cleaned_df)
+
+      # Comparison: Initial vs Cleaned Data
+      st.write("### Comparison: Initial vs. Cleaned Data")
+      col1, col2 = st.columns(2)
+      with col1:
+          st.write("#### Initial Dataset")
+          st.dataframe(df)
+      with col2:
+          st.write("#### Cleaned Dataset")
+          st.dataframe(cleaned_df)
 
 
 else:
