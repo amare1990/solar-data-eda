@@ -43,3 +43,29 @@ st.write("Explore solar energy data insights for Benin, Togo, and Sierra Leone d
 st.sidebar.header("Upload a dataset here")
 uploaded_dataset = st.sidebar.file_uploader("Upload a CSV file", type=["CSV"])
 
+if uploaded_dataset:
+  df = pd.read_csv(uploaded_dataset)
+  st.write("### Below are the first five samples of the dataset uploaded")
+  st.dataframe(df.head())
+
+  st.write("### Key Insights:")
+  st.write(f"- **Total Rows**: {df.shape[0]}")
+  st.write(f"- **Total Columns**: {df.shape[1]}")
+  st.write(f"- **Missing Values**: {df.isnull().sum().sum()}")
+  st.write(f"- **Missing Values excluding the Comments column**: {df.drop(columns=['Comments']).isnull().sum().sum()}")
+
+
+
+  # Interactive Feature: Correlation Heatmap
+  if st.sidebar.checkbox("Correlation analysis"):
+    st.write("## Interactive Correlation Heatmap")
+    selected_columns = st.multiselect("Select columns for correlation heatmap", df.columns.tolist())
+    if selected_columns:
+       fig = plot_correlation(df, selected_columns, f"Correlation Heatmap among {selected_columns}")
+       st.pyplot(fig)
+    else:
+       st.warning("Select at least two columns for correlation analysis.")
+
+else:
+   st.warning("Please upload a dataset to begin.")
+
