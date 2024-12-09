@@ -210,6 +210,55 @@ if uploaded_dataset:
     else:
         st.warning("Please select both a time column and at least one value column.")
 
+
+  # Effect of Cleaning
+  if st.sidebar.checkbox("Evaluate Cleaning Impact"):
+       st.title("Effect of Cleaning feature over ModA and ModB over time")
+       st.write("## Cleaning Impact on Sensor Readings")
+
+       required_columns = ['ModA', 'ModB', 'Cleaning', 'Timestamp']
+       missing_columns = [col for col in required_columns if col not in df.columns]
+       if missing_columns:
+           st.warning(f"The following required columns are missing from the dataset: {', '.join(missing_columns)}")
+        #    return
+
+       df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+       uncleaned_data = df[df['Cleaning'] == 0]
+       cleaned_data = df[df['Cleaning'] == 1]
+       fig, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+       # Plot ModA
+       ax[0].plot(uncleaned_data['Timestamp'], uncleaned_data['ModA'], label='Original ModA', color='red', alpha=0.6)
+       ax[0].plot(cleaned_data['Timestamp'], cleaned_data['ModA'], label='Cleaned ModA', color='blue', alpha=0.6)
+       ax[0].set_title("Impact on ModA")
+       ax[0].set_ylabel("ModA Reading")
+       ax[0].legend()
+
+       # Plot ModB
+       ax[1].plot(uncleaned_data['Timestamp'], uncleaned_data['ModB'], label='Original ModB', color='red', alpha=0.6)
+       ax[1].plot(cleaned_data['Timestamp'], cleaned_data['ModB'], label='Cleaned ModB', color='blue', alpha=0.6)
+       ax[1].set_title("Impact on ModB")
+       ax[1].set_ylabel("ModB Reading")
+       ax[1].legend()
+
+       plt.xlabel("Time")
+       plt.tight_layout()
+
+       # Display the plots
+       st.pyplot(fig)
+
+       # Provide summary statistics before and after cleaning
+       st.write("### Summary Statistics Before and After Cleaning")
+       for col in ['ModA', 'ModB']:
+           st.write(f"#### {col}")
+           original_stats = uncleaned_data[col].describe()
+           cleaned_stats = cleaned_data[col].describe()
+           st.write("**Original Data**")
+           st.write(original_stats)
+           st.write("**Cleaned Data**")
+           st.write(cleaned_stats)
+
+
+
   # Checkbox for temperature analysis
   if st.sidebar.checkbox("Temperature Analysis"):
     st.title("Temperature Analysis")
