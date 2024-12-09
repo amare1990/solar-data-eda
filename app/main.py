@@ -90,6 +90,32 @@ if uploaded_dataset:
     else:
         st.warning("Please select both a time column and at least one value column.")
 
+  st.sidebar.header("Features for Analysis")
+
+  # Checkbox for temperature analysis
+  if st.sidebar.checkbox("Temperature Analysis"):
+    st.write("## Temperature Analysis")
+
+    temp_columns = [col for col in ['TModA', 'TModB'] if col in df.columns]
+    rh_column = 'RH' if 'RH' in df.columns else None
+    solar_columns = ['GHI', 'DNI', 'DHI', 'ModA', 'ModB']
+
+    if temp_columns and rh_column:
+        st.write("### Correlation Between RH, Solar Radiation, and Temperature")
+        analysis_columns = solar_columns + temp_columns + [rh_column]
+        analysis_columns = [col for col in analysis_columns if col in df.columns]
+        fig = plot_correlation(df, analysis_columns, "RH, Solar Radiation, and Temperature Correlation")
+        st.pyplot(fig)
+    else:
+        missing = []
+        if not temp_columns:
+            missing.append("Temperature data (TModA, TModB)")
+        if not solar_columns:
+           missing.append("Solar radiation (GHI, DNI, DHI)")
+        if not rh_column:
+            missing.append("Relative Humidity (RH)")
+        st.warning(f"{', '.join(missing)} not found in the dataset.")
+
 
 else:
    st.warning("Please upload a dataset to begin.")
