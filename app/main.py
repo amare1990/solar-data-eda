@@ -26,6 +26,14 @@ font-size: 27px;
 
 # Helper function: Plot correlation heatmap
 
+def display_summary_statistics(df):
+    """
+    Display summary statistics for the dataset.
+
+    Args:
+    Data frame of the dataset.
+    """
+
 # Define the time-series plotting function
 def plot_time_series(df, time_col, value_cols, title="Time Series Analysis"):
     df[time_col] = pd.to_datetime(df[time_col])
@@ -159,9 +167,27 @@ if uploaded_dataset:
   st.write(f"- **Missing Values excluding the Comments column**: {df.drop(columns=['Comments']).isnull().sum().sum()}")
 
 
+  # Summary statistics to show mean, media,standard deviation, and the like
+  if st.sidebar.checkbox("Summary Statistics"):
+          st.title("Summary statistics for datasets")
+          st.write("## Summary Statistics")
+
+          numeric_cols = df.select_dtypes(include='number').columns.tolist()
+          selected_columns = st.multiselect(
+              "Select columns for summary statistics",
+              options=numeric_cols,
+              default=numeric_cols
+          )
+
+          if selected_columns:
+              summary = df[selected_columns].describe()
+              st.write(summary)
+          else:
+              st.warning("No numeric columns selected for summary statistics.")
 
   # Interactive Feature: Correlation Heatmap
   if st.sidebar.checkbox("Correlation analysis"):
+    st.title("Correlation analysis for features")
     st.write("## Interactive Correlation Heatmap")
     selected_columns = st.multiselect("Select columns for correlation heatmap", df.columns.tolist())
     if selected_columns:
@@ -172,6 +198,7 @@ if uploaded_dataset:
 
   # Time-series analysis
   if st.sidebar.checkbox("Perform Time-Series Analysis"):
+    st.title("Perform Time-Series Analysis")
     time_col = st.selectbox("Select the Time Column", df.columns)
     value_cols = st.multiselect("Select Value Columns (GHI, DNI, DHI, Tamb) for Analysis", df.columns)
 
@@ -185,6 +212,7 @@ if uploaded_dataset:
 
   # Checkbox for temperature analysis
   if st.sidebar.checkbox("Temperature Analysis"):
+    st.title("Temperature Analysis")
     st.write("## Temperature Analysis")
 
     temp_columns = [col for col in ['TModA', 'TModB'] if col in df.columns]
@@ -209,6 +237,7 @@ if uploaded_dataset:
 
   # Checkbox for wind analysis
   if st.sidebar.checkbox("Wind Analysis"):
+    st.title("Wind Analysis")
     st.write("## Wind Analysis")
 
     wind_columns = [col for col in ['WS', 'WSgust', 'WD'] if col in df.columns]
@@ -230,6 +259,7 @@ if uploaded_dataset:
 
   # Checkbox for histograms
   if st.sidebar.checkbox("Histograms"):
+      st.title("Histograms")
       st.write("## Histograms")
       histogram_columns = [col for col in ['GHI', 'DNI', 'DHI', 'WS', 'TModA', 'TModB'] if col in df.columns]
 
@@ -244,12 +274,14 @@ if uploaded_dataset:
 
   # Perform data qualit checking
   if st.sidebar.checkbox("Perform Data Quality Check"):
+        st.title("Perform Data Quality Check")
         st.write("## Data Quality Report")
         quality_report = check_data_quality(df)
         st.json(quality_report)
 
   # Checkbox for Data Cleaning
   if st.sidebar.checkbox("Perform Data Cleaning"):
+      st.title("Perform Data Cleaning")
       st.write("## Data Cleaning")
       cleaned_df = clean_data(df)
 
@@ -268,9 +300,9 @@ if uploaded_dataset:
           st.dataframe(cleaned_df)
 
   # Bubble chart
-  st.title("Bubble Chart Analysis Dashboard")
   # Checkbox for Bubble Chart
   if st.sidebar.checkbox("Explore Relationships with Bubble Charts"):
+     st.title("Bubble Chart Analysis Dashboard")
      st.write("## Bubble Chart Analysis")
 
      # Dropdowns to select columns for the chart
